@@ -1,7 +1,9 @@
 <template>
-  <div>Hello World</div>
+  <router-view />
 </template>
 
-<script setup></script>
+<script setup>
+import { isMobileTerminal } from './utils/flexible'
+</script>
 
 <style lang="scss" scoped></style>
