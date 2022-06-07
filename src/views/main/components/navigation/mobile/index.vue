@@ -1,16 +1,77 @@
 <template>
-  <div>我是移动端下的Navigation</div>
+  <div class="bg-white sticky top-0 left-0 z-10">
+    <ul
+      class="relative flex overflow-x-auto p-1 text-xs text-zinc-600 overflow-hidden"
+      ref="ulTarget"
+    >
+      <li
+        ref="sliderTarget"
+        :style="sliderStyle"
+        class="absolute h-[22px] bg-zinc-900 rounded-lg duration-200"
+      ></li>
+      <li
+        class="fixed top-0 right-[-1px] h-4 px-1 flex items-center bg-white z-20 shadow-l-white"
+      >
+        <m-svg-icon name="hamburger" class="w-1.5 h-1.5"></m-svg-icon>
+      </li>
+      <li
+        v-for="(item, index) in data"
+        :key="item.id"
+        class="shrink-0 px-1.5 py-0.5 z-10 duration-200 last:mr-4"
+        :class="{
+          'text-zinc-100': currentCategoryIndex === index
+        }"
+        :ref="setItemRef"
+        @click="() => onItemClick(index)"
+      >
+        {{ item.name }}
+      </li>
+    </ul>
+  </div>
 </template>
 
 <script setup>
-import { getCategory } from '@/api/category'
+import { ref, watch, onBeforeUpdate } from 'vue'
+import { useScroll } from '@vueuse/core'
 
-const getCategoryData = async () => {
-  const { data } = await getCategory()
-  console.log(data.data)
+defineProps({
+  data: {
+    type: Array,
+    required: true
+  }
+})
+
+const sliderStyle = ref({
+  transform: 'translateX(0px)',
+  width: '52px'
+})
+
+const currentCategoryIndex = ref(0)
+
+let itemRefs = []
+const setItemRef = (el) => {
+  if (el) {
+    itemRefs.push(el)
+  }
 }
+// 数据改变后，DOM变化前
+onBeforeUpdate(() => {
+  itemRefs = []
+})
 
-getCategoryData()
+const ulTarget = ref(null)
+
+const { x: ulScrollLeft } = useScroll(ulTarget)
+
+watch(currentCategoryIndex, (val) => {
+  const { left, width } = itemRefs[val].getBoundingClientRect()
+  sliderStyle.value = {
+    transform: `translateX(${ulScrollLeft.value + left - 10}px)`,
+    width: width + 'px'
+  }
+})
+
+const onItemClick = (index) => {
+  currentCategoryIndex.value = index
+}
 </script>
-
-<style lang="scss" scoped></style>
